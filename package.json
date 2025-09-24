@@ -1,0 +1,29 @@
+{
+  "name": "tabify-chrome-extension",
+  "version": "1.0.0",
+  "description": "Tabify Chrome扩展 - 标签页管理器",
+  "main": "view-test-report.js",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "view-report": "node view-test-report.js",
+    "report": "node view-test-report.js",
+    "test:ui": "npx playwright test --ui",
+    "show-report": "npx playwright show-report"
+  },
+  "keywords": [
+    "chrome-extension",
+    "tab-management",
+    "playwright",
+    "testing"
+  ],
+  "author": "Tabify Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.55.1"
+  },
+  "dependencies": {
+    "puppeteer": "^24.22.2"
+  }
+}

@@ -1,0 +1,496 @@
+/* 拖拽相关样式 */
+.sortable-item {
+  transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* 拖拽开始时的高亮效果 */
+.sortable-item.drag-start {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  transform: none;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 8px;
+  z-index: 999;
+}
+
+/* 正在被拖拽的元素 */
+.sortable-item.dragging {
+  opacity: 0.5;
+  transform: rotate(1deg);
+  z-index: 1000;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 8px;
+  transition: none; /* 拖拽时禁用过渡动画 */
+}
+
+/* 拖拽覆盖层样式 - 半透明拖影 */
+.sortable-item.drag-overlay {
+  opacity: 0.8;
+  transform: rotate(2deg);
+  z-index: 1001;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 8px;
+  transition: none;
+}
+
+/* 其他标签页在拖拽时的样式 - 减少干扰 */
+.sortable-item.other-dragging {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.sortable-item.other-dragging:hover {
+  opacity: 0.6; /* 拖拽时不显示hover效果 */
+}
+
+/* 拖拽占位符样式 - 更subtle的效果 */
+.sortable-item.placeholder {
+  opacity: 0.4;
+  transform: scale(0.98);
+  transition: all 0.2s ease;
+}
+
+/* 统一插入指示器样式 - 支持组内排序和跨分组拖拽 */
+.drag-insert-line {
+  position: relative;
+  height: 3px;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+  border-radius: 2px;
+  margin: 2px 0;
+  opacity: 0;
+  transform: scaleX(0);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.4);
+  overflow: hidden;
+}
+
+.drag-insert-line.active {
+  opacity: 1;
+  transform: scaleX(1);
+  animation: insertLinePulse 1.5s ease-in-out infinite alternate;
+}
+
+/* 插入点指示器 */
+.drag-insert-line .insert-point {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  background: #3b82f6;
+  border: 2px solid white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 4px rgba(59, 130, 246, 0.6);
+  animation: insertPointPulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes insertLinePulse {
+  from {
+    box-shadow: 0 0 6px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
+  }
+  to {
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
+    background: linear-gradient(90deg, #2563eb, #3b82f6, #2563eb);
+  }
+}
+
+@keyframes insertPointPulse {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 0 4px rgba(59, 130, 246, 0.6);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.2);
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.9);
+  }
+}
+
+/* 插入区域指示器 - 用于跨分组拖拽 */
+.drag-insert-zone {
+  min-height: 60px;
+  margin: 8px 0;
+  border: 2px dashed transparent;
+  border-radius: 12px;
+  background: transparent;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.drag-insert-zone.active {
+  opacity: 1;
+  transform: scale(1);
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.05) 0%, 
+    rgba(59, 130, 246, 0.1) 50%, 
+    rgba(59, 130, 246, 0.05) 100%);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+  animation: insertZonePulse 2s ease-in-out infinite alternate;
+}
+
+.drag-insert-zone .insert-zone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #3b82f6;
+  gap: 4px;
+}
+
+@keyframes insertZonePulse {
+  from {
+    border-color: #3b82f6;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+  }
+  to {
+    border-color: #2563eb;
+    box-shadow: 0 6px 25px rgba(59, 130, 246, 0.25);
+  }
+}
+
+/* 拖拽手柄样式 */
+.drag-handle {
+  cursor: grab;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle:hover {
+  opacity: 0.8;
+}
+
+/* 拖拽目标区域样式 */
+.drop-zone {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.drop-zone.drag-over {
+  background-color: rgba(59, 130, 246, 0.08);
+  border: 1px dashed #3b82f6;
+  transform: scale(1.02);
+}
+
+.drop-zone.active {
+  background-color: rgba(59, 130, 246, 0.12);
+  border: 2px dashed #3b82f6;
+}
+
+/* 分组高亮样式 - 拖拽到其他分组时 */
+.group-highlight {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border: 2px solid rgba(59, 130, 246, 0.5) !important;
+  border-radius: 12px;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.2);
+}
+
+.group-highlight .group-header {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  border-radius: 8px;
+}
+
+/* 新分组虚线框样式 */
+.new-group-zone {
+  min-height: 80px;
+  border: 2px dashed #3b82f6;
+  border-radius: 12px;
+  background: linear-gradient(45deg, rgba(59, 130, 246, 0.05) 25%, transparent 25%, transparent 50%, rgba(59, 130, 246, 0.05) 50%, rgba(59, 130, 246, 0.05) 75%, transparent 75%, transparent);
+  background-size: 20px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+  transition: all 0.3s ease;
+  animation: newGroupPulse 2s ease-in-out infinite alternate;
+}
+
+.new-group-zone.active {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: #2563eb;
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+}
+
+.new-group-zone .new-group-text {
+  color: #3b82f6;
+  font-size: 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@keyframes newGroupPulse {
+  from {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  to {
+    border-color: #2563eb;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
+  }
+}
+
+/* 拖拽提示样式 */
+.drag-hint {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 拖拽占位符样式 */
+.drag-placeholder {
+  height: 60px;
+  background: linear-gradient(90deg, #f3f4f6 25%, transparent 25%, transparent 50%, #f3f4f6 50%, #f3f4f6 75%, transparent 75%, transparent);
+  background-size: 20px 20px;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  font-size: 14px;
+  margin: 4px 0;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* 拖拽提示文本 */
+.drag-hint {
+  font-size: 12px;
+  color: #6b7280;
+  text-align: center;
+  margin-top: 4px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.drag-handle:hover + .drag-hint,
+.drag-handle:focus + .drag-hint {
+  opacity: 1;
+}
+
+/* 分组拖拽区域样式 */
+.group-drop-zone {
+  min-height: 40px;
+  transition: all 0.3s ease;
+}
+
+.group-drop-zone.empty {
+  border: 2px dashed transparent;
+}
+
+.group-drop-zone.empty.drag-over {
+  border-color: #3b82f6;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* 锁定分组的拖拽禁用样式 */
+.drag-disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.drag-disabled .drag-handle {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 拖拽动画 */
+@keyframes dragStart {
+  from {
+    transform: scale(1) rotate(0deg);
+  }
+  to {
+    transform: scale(1.1) rotate(2deg);
+  }
+}
+
+@keyframes dragEnd {
+  from {
+    transform: scale(1.1) rotate(2deg);
+  }
+  to {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 平滑插入动画 */
+@keyframes smoothInsert {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.smooth-insert {
+  animation: smoothInsert 0.2s ease-out;
+}
+
+/* 操作提示样式 */
+.operation-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.operation-toast.success {
+  border-left: 4px solid #10b981;
+}
+
+.operation-toast.error {
+  border-left: 4px solid #ef4444;
+}
+
+.operation-toast .toast-content {
+  flex: 1;
+}
+
+.operation-toast .toast-title {
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.operation-toast .toast-message {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.operation-toast .toast-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.operation-toast .toast-button {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.operation-toast .toast-button.primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.operation-toast .toast-button.primary:hover {
+  background-color: #2563eb;
+}
+
+.operation-toast .toast-button.secondary {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.operation-toast .toast-button.secondary:hover {
+  background-color: #e5e7eb;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.operation-toast.fade-out {
+  animation: slideOutRight 0.3s ease-in;
+}
+
+/* 响应式拖拽样式 */
+@media (max-width: 768px) {
+  .drag-handle {
+    padding: 8px;
+    font-size: 18px;
+  }
+  
+  .drag-placeholder {
+    height: 50px;
+    font-size: 12px;
+  }
+  
+  .dragging {
+    transform: rotate(3deg) scale(0.95);
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .drop-zone.drag-over {
+    background-color: rgba(59, 130, 246, 0.2);
+  }
+  
+  .drag-placeholder {
+    background: linear-gradient(90deg, #374151 25%, transparent 25%, transparent 50%, #374151 50%, #374151 75%, transparent 75%, transparent);
+    border-color: #4b5563;
+    color: #9ca3af;
+  }
+  
+  .group-drop-zone.empty.drag-over {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+}

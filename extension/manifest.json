@@ -1,0 +1,76 @@
+{
+  "manifest_version": 3,
+  "name": "Tabify - 智能标签页管理器",
+  "version": "1.0.0",
+  "description": "高效的Chrome浏览器标签页管理插件，提供一键收纳、智能分组、批量操作等功能，显著提升浏览效率和体验。",
+  
+  "permissions": [
+    "tabs",
+    "storage",
+    "activeTab",
+    "scripting",
+    "contextMenus",
+    "notifications"
+  ],
+  
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_title": "Tabify - 标签页管理",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  
+  "commands": {
+    "collect-tabs": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+T",
+        "mac": "Command+Shift+T"
+      },
+      "description": "一键收纳当前窗口所有标签页"
+    },
+    "open-manager": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+M",
+        "mac": "Command+Shift+M"
+      },
+      "description": "打开标签页管理界面"
+    }
+  },
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; img-src 'self' data: chrome-extension:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self';"
+  },
+  
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "manager.html",
+        "manager-init.js",
+        "logo.png",
+        "nextstatic/*",
+        "assets/*",
+        "icons/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

@@ -1,0 +1,319 @@
+{
+  "timestamp": "2025-09-24T09:36:46.389Z",
+  "pageInfo": {
+    "title": "Tabify - 智能标签页管理器",
+    "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/manager.html",
+    "readyState": "complete",
+    "hasBody": true,
+    "bodyChildren": 12,
+    "scripts": [
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/chunks/4bd1b696-783034c3b1facad3.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/chunks/684-f300d01f40dea9ac.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/chunks/main-app-67b2e59f2829f466.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/chunks/464-2476683a19f67f77.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/chunks/855-839dbe677b8811c3.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/chunks/723-ab0f7cda8990aff3.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/chunks/700-e7e59930feea7f51.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/chunks/app/page-fa21789ab8becca5.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/chunks/polyfills-42372ed130431b0a.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/chrome-extension-bridge.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "",
+        "hasContent": true,
+        "contentLength": 1286
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/chunks/webpack-7a7157830234b4fc.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-1.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-2.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-3.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-4.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-5.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-6.js",
+        "hasContent": false,
+        "contentLength": 0
+      },
+      {
+        "src": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-7.js",
+        "hasContent": false,
+        "contentLength": 0
+      }
+    ],
+    "stylesheets": [
+      {
+        "href": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/css/1220943302285fd9.css",
+        "rules": 444
+      },
+      {
+        "href": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/nextstatic/static/css/f4fd09d46f25b045.css",
+        "rules": 61
+      }
+    ],
+    "reactStatus": {
+      "hasReact": false,
+      "hasReactDOM": false,
+      "hasNext": true,
+      "nextDataLength": 7
+    }
+  },
+  "errors": {
+    "console": [
+      {
+        "type": "log",
+        "text": "Chrome扩展桥梁脚本已加载",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/chrome-extension-bridge.js",
+          "lineNumber": 113,
+          "columnNumber": 8
+        },
+        "timestamp": "2025-09-24T09:36:40.665Z"
+      },
+      {
+        "type": "log",
+        "text": "SafeDOM工具已加载",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/manager.html",
+          "lineNumber": 57,
+          "columnNumber": 8
+        },
+        "timestamp": "2025-09-24T09:36:40.668Z"
+      },
+      {
+        "type": "log",
+        "text": "内联脚本 1: DOM安全工具可用",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-1.js",
+          "lineNumber": 8,
+          "columnNumber": 10
+        },
+        "timestamp": "2025-09-24T09:36:40.669Z"
+      },
+      {
+        "type": "log",
+        "text": "内联脚本 2: DOM安全工具可用",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-2.js",
+          "lineNumber": 8,
+          "columnNumber": 10
+        },
+        "timestamp": "2025-09-24T09:36:40.669Z"
+      },
+      {
+        "type": "log",
+        "text": "内联脚本 3: DOM安全工具可用",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-3.js",
+          "lineNumber": 8,
+          "columnNumber": 10
+        },
+        "timestamp": "2025-09-24T09:36:40.669Z"
+      },
+      {
+        "type": "log",
+        "text": "内联脚本 4: DOM安全工具可用",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-4.js",
+          "lineNumber": 8,
+          "columnNumber": 10
+        },
+        "timestamp": "2025-09-24T09:36:40.670Z"
+      },
+      {
+        "type": "log",
+        "text": "内联脚本 5: DOM安全工具可用",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-5.js",
+          "lineNumber": 8,
+          "columnNumber": 10
+        },
+        "timestamp": "2025-09-24T09:36:40.670Z"
+      },
+      {
+        "type": "log",
+        "text": "内联脚本 6: DOM安全工具可用",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-6.js",
+          "lineNumber": 8,
+          "columnNumber": 10
+        },
+        "timestamp": "2025-09-24T09:36:40.670Z"
+      },
+      {
+        "type": "log",
+        "text": "内联脚本 7: DOM安全工具可用",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/inline-script-7.js",
+          "lineNumber": 8,
+          "columnNumber": 10
+        },
+        "timestamp": "2025-09-24T09:36:40.670Z"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+        "location": {
+          "url": "file:///F:/nextstatic/static/css/1220943302285fd9.css",
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "timestamp": "2025-09-24T09:36:40.725Z"
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: net::ERR_FILE_NOT_FOUND",
+        "location": {
+          "url": "file:///F:/nextstatic/static/css/f4fd09d46f25b045.css",
+          "lineNumber": 0,
+          "columnNumber": 0
+        },
+        "timestamp": "2025-09-24T09:36:40.726Z"
+      },
+      {
+        "type": "log",
+        "text": "ExtensionBridge: 初始化开始",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/chrome-extension-bridge.js",
+          "lineNumber": 29,
+          "columnNumber": 12
+        },
+        "timestamp": "2025-09-24T09:36:40.726Z"
+      },
+      {
+        "type": "log",
+        "text": "ExtensionBridge: 非Chrome扩展环境，使用本地模式",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/chrome-extension-bridge.js",
+          "lineNumber": 34,
+          "columnNumber": 14
+        },
+        "timestamp": "2025-09-24T09:36:40.727Z"
+      },
+      {
+        "type": "log",
+        "text": "ExtensionBridge: 初始化完成",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/chrome-extension-bridge.js",
+          "lineNumber": 38,
+          "columnNumber": 12
+        },
+        "timestamp": "2025-09-24T09:36:40.727Z"
+      },
+      {
+        "type": "warning",
+        "text": "尝试移除不存在的子节点，操作被跳过",
+        "location": {
+          "url": "file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/manager.html",
+          "lineNumber": 47,
+          "columnNumber": 16
+        },
+        "timestamp": "2025-09-24T09:36:40.747Z"
+      }
+    ],
+    "page": [
+      {
+        "message": "React is not defined",
+        "stack": "ReferenceError: React is not defined\n    at file:///F:/Desktop/tabify-app-dev-iframe-integration/extension/build/chrome-extension-bridge.js:120:29",
+        "timestamp": "2025-09-24T09:36:40.667Z"
+      },
+      {
+        "message": "Event",
+        "stack": "",
+        "timestamp": "2025-09-24T09:36:40.740Z"
+      },
+      {
+        "message": "Event",
+        "stack": "",
+        "timestamp": "2025-09-24T09:36:40.740Z"
+      }
+    ],
+    "request": [
+      {
+        "url": "file:///F:/nextstatic/static/css/1220943302285fd9.css",
+        "method": "GET",
+        "failure": "net::ERR_FILE_NOT_FOUND",
+        "timestamp": "2025-09-24T09:36:40.724Z"
+      },
+      {
+        "url": "file:///F:/nextstatic/static/css/f4fd09d46f25b045.css",
+        "method": "GET",
+        "failure": "net::ERR_FILE_NOT_FOUND",
+        "timestamp": "2025-09-24T09:36:40.726Z"
+      }
+    ],
+    "response": []
+  },
+  "summary": {
+    "totalConsoleErrors": 2,
+    "totalPageErrors": 3,
+    "totalRequestFailures": 2,
+    "totalResponseErrors": 0,
+    "criticalIssues": [
+      "CSS加载失败",
+      "CSS加载失败"
+    ]
+  }
+}
