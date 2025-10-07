@@ -20,18 +20,6 @@ if (fs.existsSync(backgroundJsPath)) {
     "chrome.runtime.getURL('manager.html')"
   );
 
-  // 修复图标路径
-  content = content.replace(
-    /iconUrl: 'build\/icons\/icon48\.png'/g,
-    "iconUrl: 'icons/icon48.png'"
-  );
-
-  // 修复管理界面检测路径
-  content = content.replace(
-    /chrome\.runtime\.getURL\('build\/manager\.html'\)/g,
-    "chrome.runtime.getURL('manager.html')"
-  );
-
   fs.writeFileSync(backgroundJsPath, content);
   console.log('✅ background.js路径修复完成');
 } else {

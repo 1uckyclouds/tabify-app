@@ -196,7 +196,6 @@ chrome.action.onClicked.addListener(async (tab) => {
     console.log('管理界面打开完成');
   } catch (error) {
     console.error('扩展图标点击处理失败:', error);
-    showNotification('操作失败', '收纳标签页或打开管理界面时发生错误');
   }
 });
 
@@ -232,16 +231,12 @@ async function collectCurrentTab(tab) {
     // 通知管理界面数据已更新
     await notifyDataChanged('collect', { tabs: [tabData] });
 
-    // 显示通知
-    showNotification('标签页已收纳', `已收纳: ${tabData.title}`);
-
     // 自动打开管理界面
     console.log('收纳完成，自动打开管理界面...');
     await openManager();
 
   } catch (error) {
     console.error('收纳标签页失败:', error);
-    showNotification('收纳失败', '收纳标签页时发生错误');
   }
 }
 
@@ -260,7 +255,6 @@ async function collectCurrentWindowTabs() {
 
     if (tabsToCollect.length === 0) {
       console.log('当前窗口没有可收纳的标签页');
-      showNotification('提示', '当前窗口没有可收纳的标签页');
       return;
     }
 
@@ -275,12 +269,6 @@ async function collectCurrentWindowTabs() {
 
     console.log(`✅ 已收纳当前窗口的 ${tabsToCollect.length} 个标签页`);
 
-    // 显示通知
-    showNotification(
-      '收纳完成',
-      `已收纳当前窗口的 ${tabsToCollect.length} 个标签页`
-    );
-
     // 通知数据变更
     console.log('📢 通知数据变更...');
     notifyDataChanged('collect', { tabs: tabsToCollect });
@@ -292,7 +280,6 @@ async function collectCurrentWindowTabs() {
     console.log('🎉 收纳流程完成');
   } catch (error) {
     console.error('❌ 收纳当前窗口标签页失败:', error);
-    showNotification('错误', '收纳标签页失败');
   }
 }
 
@@ -323,7 +310,7 @@ async function collectLeftTabs(currentTab) {
     const currentIndex = tabs.findIndex(tab => tab.id === currentTab.id);
 
     if (currentIndex === -1) {
-      showNotification('收纳失败', '无法找到当前标签页');
+      console.log('收纳失败：无法找到当前标签页');
       return;
     }
 
@@ -353,7 +340,7 @@ async function collectLeftTabs(currentTab) {
     }
 
     if (collectedTabs.length === 0) {
-      showNotification('无标签页可收纳', '当前标签页左侧没有可收纳的标签页');
+      console.log('当前标签页左侧没有可收纳的标签页');
       return;
     }
 
@@ -370,19 +357,12 @@ async function collectLeftTabs(currentTab) {
     // 通知管理界面数据已更新
     await notifyDataChanged('collect', { tabs: collectedTabs });
 
-    // 显示通知
-    showNotification(
-      '左侧标签页收纳完成',
-      `已收纳左侧 ${collectedTabs.length} 个标签页`
-    );
-
     // 自动打开管理界面
     console.log('收纳完成，自动打开管理界面...');
     await openManager();
 
   } catch (error) {
     console.error('收纳左侧标签页失败:', error);
-    showNotification('收纳失败', '收纳左侧标签页时发生错误');
   }
 }
 
@@ -405,7 +385,7 @@ async function collectRightTabs(currentTab) {
     const currentIndex = tabs.findIndex(tab => tab.id === currentTab.id);
 
     if (currentIndex === -1) {
-      showNotification('收纳失败', '无法找到当前标签页');
+      console.log('收纳失败：无法找到当前标签页');
       return;
     }
 
@@ -435,7 +415,7 @@ async function collectRightTabs(currentTab) {
     }
 
     if (collectedTabs.length === 0) {
-      showNotification('无标签页可收纳', '当前标签页右侧没有可收纳的标签页');
+      console.log('当前标签页右侧没有可收纳的标签页');
       return;
     }
 
@@ -452,19 +432,12 @@ async function collectRightTabs(currentTab) {
     // 通知管理界面数据已更新
     await notifyDataChanged('collect', { tabs: collectedTabs });
 
-    // 显示通知
-    showNotification(
-      '右侧标签页收纳完成',
-      `已收纳右侧 ${collectedTabs.length} 个标签页`
-    );
-
     // 自动打开管理界面
     console.log('收纳完成，自动打开管理界面...');
     await openManager();
 
   } catch (error) {
     console.error('收纳右侧标签页失败:', error);
-    showNotification('收纳失败', '收纳右侧标签页时发生错误');
   }
 }
 
@@ -509,8 +482,6 @@ async function openManager() {
     console.log('🎉 openManager函数执行完成');
   } catch (error) {
     console.error('❌ 打开管理界面失败:', error);
-    // 显示错误通知
-    showNotification('打开管理界面失败', error.message || '未知错误');
   }
 }
 
@@ -559,7 +530,6 @@ async function openDirectManager() {
     }, 'tabs.create');
 
     console.log('✅ 新管理界面标签页已创建:', newTab.id, newTab.url);
-    showNotification('管理界面已打开', '标签页管理器已启动');
   }
 
   console.log('🎉 openDirectManager函数执行完成');
@@ -617,29 +587,6 @@ function generateTabId() {
   return `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-/**
- * 显示系统通知
- * @param {string} title - 通知标题
- * @param {string} message - 通知内容
- */
-function showNotification(title, message) {
-  if (!isApiAvailable('notifications')) {
-    console.warn('notifications API不可用，使用控制台输出替代:', title, message);
-    return;
-  }
-
-  safeApiCall(() => {
-    return chrome.notifications.create({
-      type: 'basic',
-      iconUrl: 'build/icons/icon48.png',
-      title: title,
-      message: message
-    });
-  }, 'notifications').catch(error => {
-    console.error('显示通知失败:', error);
-    console.log('通知内容:', title, message);
-  });
-}
 
 /**
  * 恢复单个标签页
@@ -654,9 +601,6 @@ async function restoreTab(tab, active = true) {
     });
 
     console.log('已恢复标签页:', tab.title);
-
-    // 显示通知
-    showNotification('标签页已恢复', `已恢复: ${tab.title}`);
 
     return newTab;
   } catch (error) {
@@ -692,12 +636,6 @@ async function restoreTabs(tabs, activeLast = true) {
     }
 
     console.log(`已批量恢复 ${restoredTabs.length} 个标签页`);
-
-    // 显示通知
-    showNotification(
-      '批量恢复完成',
-      `已恢复 ${restoredTabs.length} 个标签页`
-    );
 
     return restoredTabs;
   } catch (error) {
