@@ -1,16 +1,23 @@
 {
-  "name": "tabify-chrome-extension",
+  "name": "tabify-workspace",
   "version": "1.0.0",
   "description": "Tabify Chrome扩展 - 标签页管理器",
-  "main": "view-test-report.js",
+  "private": true,
+  "workspaces": [
+    "apps"
+  ],
   "scripts": {
     "test": "npx playwright test",
     "test:headed": "npx playwright test --headed",
     "test:debug": "npx playwright test --debug",
-    "view-report": "node view-test-report.js",
-    "report": "node view-test-report.js",
+    "view-report": "node scripts/dev/view-test-report.js",
+    "report": "node scripts/dev/view-test-report.js",
     "test:ui": "npx playwright test --ui",
-    "show-report": "npx playwright show-report"
+    "show-report": "npx playwright show-report",
+    "dev": "npm run dev -w apps",
+    "build": "npm run build -w apps",
+    "build:extension": "npm run build:extension -w apps",
+    "clean": "rm -rf node_modules apps/node_modules dist extension/build test-results"
   },
   "keywords": [
     "chrome-extension",
@@ -21,7 +28,8 @@
   "author": "Tabify Team",
   "license": "MIT",
   "devDependencies": {
-    "@playwright/test": "^1.55.1"
+    "@playwright/test": "^1.55.1",
+    "http-server": "^14.1.1"
   },
   "dependencies": {
     "puppeteer": "^24.22.2"
