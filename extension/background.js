@@ -587,7 +587,6 @@ function generateTabId() {
   return `tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-
 /**
  * 恢复单个标签页
  * @param {Object} tab - 标签页数据
