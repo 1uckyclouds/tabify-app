@@ -1001,11 +1001,6 @@ async function copyExtensionFiles() {
       if (fs.existsSync(sourcePath)) {
         fs.copyFileSync(sourcePath, targetPath);
         console.log(`✅ 已复制: ${file}`);
-
-        // 修复background.js中的路径问题
-        if (file === 'background.js') {
-          fixBackgroundJSPaths(targetPath);
-        }
       } else {
         console.warn(`⚠️ 文件不存在: ${file}`);
       }
@@ -1050,40 +1045,6 @@ async function copyExtensionFiles() {
 }
 
 
-/**
- * 修复background.js中的路径问题
- * 将build/manager.html和build/icons路径修复为相对路径
- */
-function fixBackgroundJSPaths(backgroundJSPath) {
-  console.log('🔧 修复background.js路径问题...');
-
-  try {
-    let content = fs.readFileSync(backgroundJSPath, 'utf8');
-
-    // 修复manager.html的路径
-    content = content.replace(
-      /chrome\.runtime\.getURL\('build\/manager\.html'\)/g,
-      "chrome.runtime.getURL('manager.html')"
-    );
-
-    // 修复管理界面检测路径
-    content = content.replace(
-      /chrome\.runtime\.getURL\('build\/manager\.html'\)/g,
-      "chrome.runtime.getURL('manager.html')"
-    );
-
-    // 修复图标路径（如果有的话）
-    content = content.replace(
-      /iconUrl: 'build\/icons\/icon48\.png'/g,
-      "iconUrl: 'icons/icon48.png'"
-    );
-
-    fs.writeFileSync(backgroundJSPath, content, 'utf8');
-    console.log('✅ background.js路径修复完成');
-  } catch (error) {
-    console.error('❌ background.js路径修复失败:', error.message);
-  }
-}
 
 /**
  * 复制并处理manifest.json文件

@@ -492,7 +492,8 @@ async function openManager() {
 async function openDirectManager() {
   console.log('📂 openDirectManager函数开始执行');
 
-  const managerUrl = chrome.runtime.getURL('build/manager.html');
+  // 使用相对路径，在build目录中自动生效
+const managerUrl = chrome.runtime.getURL('manager.html');
   console.log('🔗 管理界面URL:', managerUrl);
 
   console.log('🔍 查询现有管理界面标签页...');
@@ -785,7 +786,7 @@ async function notifyDataChanged(action, data) {
       // 检查是否是管理界面标签页
       const isManagerTab =
         tab.url.includes('localhost:3000') || // 开发环境
-        tab.url.includes(chrome.runtime.getURL('build/manager.html')) || // 扩展页面
+        tab.url.includes(chrome.runtime.getURL('manager.html')) || // 扩展页面
         tab.url.includes('tabify') || // 可能的生产环境
         (tab.title && tab.title.includes('Tabify')); // 根据标题判断
 
