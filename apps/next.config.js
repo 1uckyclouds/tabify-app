@@ -1,7 +1,6 @@
-import type { NextConfig } from "next";
 const ExtensionAutoBuildPlugin = require('./extension-auto-build-plugin');
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   // 启用静态导出，用于Chrome扩展构建
   output: "export",
   // 设置构建目录
@@ -42,4 +41,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

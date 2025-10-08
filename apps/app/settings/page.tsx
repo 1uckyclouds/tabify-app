@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useSettings } from '../../hooks/useSettings';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -21,13 +21,17 @@ import {
   Loader2
 } from 'lucide-react';
 
+// 直接导出设置内容组件，不需要Suspense包装
+function SettingsContentWrapper() {
+  return <SettingsContent />;
+}
+
 /**
  * 设置页面内容组件
  * 包含AI模型配置、主题设置、快捷键信息和关于页面
  */
 function SettingsContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const {
     settings,
     isLoading,
@@ -40,17 +44,24 @@ function SettingsContent() {
     resetSettings,
     setTheme
   } = useSettings();
-  
+
   const [activeTab, setActiveTab] = useState<'ai' | 'theme' | 'shortcuts' | 'about'>('ai');
   const [isSaving, setIsSaving] = useState(false);
 
-  // 根据URL参数设置活动选项卡
+  // 在客户端挂载后从URL hash读取参数，避免使用useSearchParams
   useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab && ['ai', 'theme', 'shortcuts', 'about'].includes(tab)) {
-      setActiveTab(tab as 'ai' | 'theme' | 'shortcuts' | 'about');
+    if (typeof window !== 'undefined') {
+      // 从URL hash中解析参数，例如: #tab=theme
+      const hash = window.location.hash;
+      const match = hash.match(/tab=([^&]+)/);
+      if (match) {
+        const tab = match[1];
+        if (['ai', 'theme', 'shortcuts', 'about'].includes(tab)) {
+          setActiveTab(tab as 'ai' | 'theme' | 'shortcuts' | 'about');
+        }
+      }
     }
-  }, [searchParams]);
+  }, []);
 
   // 保存设置的包装函数
   const handleSaveSettings = async (): Promise<boolean> => {
@@ -278,19 +289,8 @@ function SettingsContent() {
 
 /**
  * 设置页面
- * 使用Suspense包装以处理useSearchParams
+ * 直接使用SettingsContentWrapper以确保正确的Suspense边界
  */
 export default function SettingsPage() {
-  return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">加载设置中...</p>
-        </div>
-      </div>
-    }>
-      <SettingsContent />
-    </Suspense>
-  );
+  return <SettingsContentWrapper />;
 }

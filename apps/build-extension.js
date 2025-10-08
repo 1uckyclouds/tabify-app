@@ -226,21 +226,50 @@ async function generateExtensionHTML() {
 
 /**
  * 生成额外的独立页面
- * 根据菜单需求生成settings.html等独立页面
+ * 使用Next.js构建输出的独立页面，并处理资源路径
  */
 async function generateAdditionalPages() {
   console.log('📄 生成额外的独立页面...');
 
   try {
-    // 读取manager.html作为模板
-    const managerPath = path.join(CONFIG.BUILD_OUTPUT, 'manager.html');
-    const managerContent = fs.readFileSync(managerPath, 'utf8');
+    // 从Next.js构建输出中复制独立页面
+    const nextServerDir = path.join(__dirname, '.next', 'server', 'app');
 
-    // 生成settings.html
-    await generateSettingsPage(managerContent);
+    // 复制settings.html
+    const nextSettingsPath = path.join(nextServerDir, 'settings.html');
+    if (fs.existsSync(nextSettingsPath)) {
+      let settingsContent = fs.readFileSync(nextSettingsPath, 'utf8');
+      // 处理资源路径
+      settingsContent = processHTMLForExtension(settingsContent);
 
-    // 生成import-export.html
-    await generateImportExportPage(managerContent);
+      const targetSettingsPath = path.join(CONFIG.BUILD_OUTPUT, 'settings.html');
+      fs.writeFileSync(targetSettingsPath, settingsContent, 'utf8');
+      console.log('✅ 已复制并处理settings.html');
+    }
+
+    // 复制import-export.html
+    const nextImportExportPath = path.join(nextServerDir, 'import-export.html');
+    if (fs.existsSync(nextImportExportPath)) {
+      let importExportContent = fs.readFileSync(nextImportExportPath, 'utf8');
+      // 处理资源路径
+      importExportContent = processHTMLForExtension(importExportContent);
+
+      const targetImportExportPath = path.join(CONFIG.BUILD_OUTPUT, 'import-export.html');
+      fs.writeFileSync(targetImportExportPath, importExportContent, 'utf8');
+      console.log('✅ 已复制并处理import-export.html');
+    }
+
+    // 复制test-menu.html（如果存在）
+    const nextTestMenuPath = path.join(nextServerDir, 'test-menu.html');
+    if (fs.existsSync(nextTestMenuPath)) {
+      let testMenuContent = fs.readFileSync(nextTestMenuPath, 'utf8');
+      // 处理资源路径
+      testMenuContent = processHTMLForExtension(testMenuContent);
+
+      const targetTestMenuPath = path.join(CONFIG.BUILD_OUTPUT, 'test-menu.html');
+      fs.writeFileSync(targetTestMenuPath, testMenuContent, 'utf8');
+      console.log('✅ 已复制并处理test-menu.html');
+    }
 
     console.log('✅ 额外页面生成完成');
   } catch (error) {
@@ -248,71 +277,6 @@ async function generateAdditionalPages() {
   }
 }
 
-/**
- * 生成settings.html页面
- */
-async function generateSettingsPage(baseHtmlContent) {
-  const targetPath = path.join(CONFIG.BUILD_OUTPUT, 'settings.html');
-
-  // 修改页面标题和基础路径
-  let settingsContent = baseHtmlContent.replace(
-    '<title>Tabify - 标签页管理器</title>',
-    '<title>Tabify - 设置</title>'
-  );
-
-  // 添加页面初始化脚本，设置默认tab为ai设置
-  const initScript = `
-    <script>
-      // 页面加载完成后自动跳转到AI设置tab
-      if (typeof window !== 'undefined') {
-        window.addEventListener('DOMContentLoaded', function() {
-          // 设置URL参数为AI设置tab
-          if (window.location.search === '') {
-            window.history.replaceState({}, '', '?tab=ai');
-          }
-        });
-      }
-    </script>
-  `;
-
-  settingsContent = settingsContent.replace('</body>', initScript + '</body>');
-
-  fs.writeFileSync(targetPath, settingsContent, 'utf8');
-  console.log('✅ 已生成settings.html');
-}
-
-/**
- * 生成import-export.html页面
- */
-async function generateImportExportPage(baseHtmlContent) {
-  const targetPath = path.join(CONFIG.BUILD_OUTPUT, 'import-export.html');
-
-  // 修改页面标题
-  let importExportContent = baseHtmlContent.replace(
-    '<title>Tabify - 标签页管理器</title>',
-    '<title>Tabify - 导入导出</title>'
-  );
-
-  // 添加页面初始化脚本，设置默认路由为导入导出页面
-  const initScript = `
-    <script>
-      // 页面加载完成后自动跳转到导入导出页面
-      if (typeof window !== 'undefined') {
-        window.addEventListener('DOMContentLoaded', function() {
-          // 设置URL路径为导入导出页面
-          if (window.location.pathname === '/') {
-            window.history.replaceState({}, '', '/import-export');
-          }
-        });
-      }
-    </script>
-  `;
-
-  importExportContent = importExportContent.replace('</body>', initScript + '</body>');
-
-  fs.writeFileSync(targetPath, importExportContent, 'utf8');
-  console.log('✅ 已生成import-export.html');
-}
 
 /**
  * 创建模板所需的外部资源文件
