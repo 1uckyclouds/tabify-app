@@ -151,7 +151,12 @@ function SettingsContent() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.back()}
+                onClick={() => {
+                  // 在Chrome扩展环境中直接导航到manager.html
+                  if (typeof window !== 'undefined') {
+                    window.location.href = 'manager.html';
+                  }
+                }}
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="w-4 h-4" />

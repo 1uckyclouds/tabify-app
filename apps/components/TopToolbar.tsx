@@ -27,7 +27,6 @@ export default function TopToolbar({
     setShowMenu(false);
     switch (action) {
       case 'import':
-      case 'export':
         // 导入导出功能：在新的独立页面中打开
         if (typeof window !== 'undefined' && window.chrome && window.chrome.runtime) {
           // Chrome扩展环境：在新标签页中打开导入导出页面
@@ -116,29 +115,15 @@ export default function TopToolbar({
                 onClick={() => setShowMenu(false)}
               ></div>
               <div className="absolute right-0 top-10 z-20 bg-white border border-gray-200 rounded-lg shadow-lg py-1 min-w-40">
-                {/* 上方区域：导入和导出 */}
+                {/* 上方区域：导入导出合并选项 */}
                 <button
                   onClick={() => handleMenuItemClick('import')}
                   className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                 >
-                  <i className="ri-download-line text-gray-500"></i>
-                  导入
+                  <i className="ri-exchange-line text-gray-500"></i>
+                  导入/导出网址
                 </button>
-                <button
-                  onClick={() => handleMenuItemClick('export')}
-                  className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                >
-                  <i className="ri-upload-line text-gray-500"></i>
-                  导出
-                </button>
-                <button
-                  onClick={() => handleMenuItemClick('refresh')}
-                  className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
-                >
-                  <i className="ri-refresh-line text-gray-500"></i>
-                  刷新数据
-                </button>
-                
+                  
                 {/* 分割线 */}
                 <div className="border-t border-gray-100 my-1"></div>
                 

@@ -92,13 +92,18 @@ export default function ImportExportPage() {
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
-            <Link
-              href="/"
+            <button
+              onClick={() => {
+                // 在Chrome扩展环境中直接导航到manager.html
+                if (typeof window !== 'undefined') {
+                  window.location.href = 'manager.html';
+                }
+              }}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span>返回主页</span>
-            </Link>
+            </button>
             <div className="w-px h-6 bg-gray-300"></div>
             <h1 className="text-xl font-semibold text-gray-900">数据管理</h1>
           </div>

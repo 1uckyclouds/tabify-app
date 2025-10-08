@@ -18,7 +18,7 @@ const CONFIG = {
   // 源目录
   SOURCE_DIR: __dirname,
   // 输出目录
-  OUTPUT_DIR: path.join(__dirname, 'out'),
+  OUTPUT_DIR: path.join(__dirname, 'static-export'),
   // 扩展目录
   EXTENSION_DIR: path.join(__dirname, '..', 'extension'),
   // 构建输出目录
@@ -79,18 +79,23 @@ async function buildExtension() {
  */
 async function cleanOutputDirectory() {
   console.log('🧹 清理输出目录...');
-  
-  // 删除Next.js输出目录
-  if (fs.existsSync(CONFIG.OUTPUT_DIR)) {
-    fs.rmSync(CONFIG.OUTPUT_DIR, { recursive: true, force: true });
+
+  try {
+    // 删除Next.js输出目录
+    if (fs.existsSync(CONFIG.OUTPUT_DIR)) {
+      fs.rmSync(CONFIG.OUTPUT_DIR, { recursive: true, force: true });
+    }
+
+    // 删除扩展构建目录
+    if (fs.existsSync(CONFIG.BUILD_OUTPUT)) {
+      fs.rmSync(CONFIG.BUILD_OUTPUT, { recursive: true, force: true });
+    }
+
+    console.log('✅ 输出目录清理完成');
+  } catch (error) {
+    console.warn(`⚠️ 清理输出目录失败: ${error.message}`);
+    console.log('🔄 继续构建过程...');
   }
-  
-  // 删除扩展构建目录
-  if (fs.existsSync(CONFIG.BUILD_OUTPUT)) {
-    fs.rmSync(CONFIG.BUILD_OUTPUT, { recursive: true, force: true });
-  }
-  
-  console.log('✅ 输出目录清理完成');
 }
 
 /**
@@ -198,7 +203,7 @@ async function generateExtensionHTML() {
       let htmlContent = fs.readFileSync(nextIndexPath, 'utf8');
 
       // 处理HTML内容，使其兼容Chrome扩展
-      htmlContent = processHTMLForExtension(htmlContent);
+      htmlContent = processHTMLForExtension(htmlContent, 'manager');
 
       // 写入manager.html
       fs.writeFileSync(targetManagerPath, htmlContent, 'utf8');
@@ -240,7 +245,7 @@ async function generateAdditionalPages() {
     if (fs.existsSync(nextSettingsPath)) {
       let settingsContent = fs.readFileSync(nextSettingsPath, 'utf8');
       // 处理资源路径
-      settingsContent = processHTMLForExtension(settingsContent);
+      settingsContent = processHTMLForExtension(settingsContent, 'settings');
 
       const targetSettingsPath = path.join(CONFIG.BUILD_OUTPUT, 'settings.html');
       fs.writeFileSync(targetSettingsPath, settingsContent, 'utf8');
@@ -252,25 +257,14 @@ async function generateAdditionalPages() {
     if (fs.existsSync(nextImportExportPath)) {
       let importExportContent = fs.readFileSync(nextImportExportPath, 'utf8');
       // 处理资源路径
-      importExportContent = processHTMLForExtension(importExportContent);
+      importExportContent = processHTMLForExtension(importExportContent, 'import-export');
 
       const targetImportExportPath = path.join(CONFIG.BUILD_OUTPUT, 'import-export.html');
       fs.writeFileSync(targetImportExportPath, importExportContent, 'utf8');
       console.log('✅ 已复制并处理import-export.html');
     }
 
-    // 复制test-menu.html（如果存在）
-    const nextTestMenuPath = path.join(nextServerDir, 'test-menu.html');
-    if (fs.existsSync(nextTestMenuPath)) {
-      let testMenuContent = fs.readFileSync(nextTestMenuPath, 'utf8');
-      // 处理资源路径
-      testMenuContent = processHTMLForExtension(testMenuContent);
-
-      const targetTestMenuPath = path.join(CONFIG.BUILD_OUTPUT, 'test-menu.html');
-      fs.writeFileSync(targetTestMenuPath, testMenuContent, 'utf8');
-      console.log('✅ 已复制并处理test-menu.html');
-    }
-
+    
     console.log('✅ 额外页面生成完成');
   } catch (error) {
     console.warn(`⚠️ 额外页面生成失败: ${error.message}`);
@@ -444,7 +438,7 @@ function generateHTMLTemplate() {
  * 处理HTML内容，使其兼容Chrome扩展
  * 修改路径引用、提取内联脚本、生成安全的CSP策略
  */
-function processHTMLForExtension(htmlContent) {
+function processHTMLForExtension(htmlContent, filename = 'unknown') {
   console.log('🔧 开始处理HTML内容以兼容CSP...');
   
   // 处理Next.js静态资源路径
@@ -459,10 +453,15 @@ function processHTMLForExtension(htmlContent) {
   htmlContent = htmlContent.replace(/\/nextstatic\//g, 'nextstatic/');
   // 保留 "_next/" 字符串，避免破坏例如 "/_next/image" 等合法路径
   
+  // 修复Next.js路由路径为Chrome扩展兼容路径
+  htmlContent = htmlContent.replace(/href="\/manager"/g, 'href="manager.html"');
+  htmlContent = htmlContent.replace(/href="\/settings"/g, 'href="settings.html"');
+  htmlContent = htmlContent.replace(/href="\/import-export"/g, 'href="import-export.html"');
+
   // 修复其他绝对路径为相对路径
   htmlContent = htmlContent.replace(/href="\/([^"*]*\.(css|js|png|jpg|jpeg|gif|svg|ico))"/g, 'href="$1"');
   htmlContent = htmlContent.replace(/src="\/([^"*]*\.(js|png|jpg|jpeg|gif|svg|ico))"/g, 'src="$1"');
-  
+
   // 修复logo和其他资源的绝对路径
   htmlContent = htmlContent.replace(/src="\/logo\.png"/g, 'src="logo.png"');
   
@@ -481,7 +480,7 @@ function processHTMLForExtension(htmlContent) {
   );
   
   // 提取内联脚本并外部化
-  htmlContent = extractAndExternalizeInlineScripts(htmlContent);
+  htmlContent = extractAndExternalizeInlineScripts(htmlContent, filename);
   
   // 移除可能导致CSP违规的内联样式和事件处理器
   htmlContent = htmlContent.replace(/\sstyle="[^"]*"/gi, '');
@@ -500,84 +499,144 @@ function processHTMLForExtension(htmlContent) {
 }
 
 /**
- * 提取内联脚本并外部化
- * 将HTML中的内联脚本提取到独立的JS文件中，并更新HTML引用
+ * 安全地处理脚本内容
+ * @param {string} content - 原始脚本内容
+ * @returns {string} 处理后的安全脚本内容
  */
-function extractAndExternalizeInlineScripts(htmlContent) {
-  console.log('📤 提取内联脚本...');
-  
-  const inlineScripts = [];
+function sanitizeScriptContent(content) {
+  try {
+    // 移除不必要的空白字符
+    let sanitized = content.trim();
+
+    // 检查是否是Next.js特定的脚本
+    if (sanitized.includes('self.__next_f.push')) {
+      // 这是Next.js脚本，需要特殊处理
+      // 修复路径引用：将 /_next/static/ 替换为 nextstatic/static/
+      sanitized = sanitized.replace(/\/_next\/static\//g, 'nextstatic/static/');
+      return `// Next.js bootstrap script\n${sanitized}`;
+    }
+
+    // 检查是否包含危险内容
+    if (sanitized.includes('eval') || sanitized.includes('Function') || sanitized.includes('document.write')) {
+      console.warn('⚠️ 跳过包含潜在危险代码的脚本');
+      return null;
+    }
+
+    return sanitized;
+  } catch (error) {
+    console.warn('⚠️ 脚本内容清理失败:', error.message);
+    return null;
+  }
+}
+
+/**
+ * 验证生成的HTML文件
+ * @param {string} htmlContent - HTML内容
+ * @param {string} filename - 文件名
+ */
+function validateHtmlFile(htmlContent, filename) {
+  console.log(`🔍 验证HTML文件: ${filename}`);
+
+  // 检查是否还有内联脚本
+  const inlineScriptRegex = /<script>([^<]*?)<\/script>/g;
+  const inlineScripts = htmlContent.match(inlineScriptRegex) || [];
+
+  if (inlineScripts.length > 0) {
+    console.warn(`⚠️ 仍发现 ${inlineScripts.length} 个内联脚本`);
+  } else {
+    console.log('✅ 未发现内联脚本');
+  }
+
+  // 检查CSS文件引用
+  const cssRefs = htmlContent.match(/href="([^"]*\.css)"/g) || [];
+  console.log(`📊 找到 ${cssRefs.length} 个CSS文件引用`);
+
+  // 检查JS文件引用
+  const jsRefs = htmlContent.match(/src="([^"]*\.js)"/g) || [];
+  console.log(`📊 找到 ${jsRefs.length} 个JS文件引用`);
+}
+
+/**
+ * 提取内联脚本并外部化（改进版）
+ * 将HTML中的内联脚本提取到独立的JS文件中，并更新HTML引用
+ * 使用更精确的脚本内容清理和验证机制
+ */
+function extractAndExternalizeInlineScripts(htmlContent, filename = 'unknown') {
+  console.log('📤 提取内联脚本（改进版）...');
+
+  const scripts = [];
+  let modifiedContent = htmlContent;
   let scriptCounter = 0;
-  
-  // 匹配所有内联脚本标签
+
+  // 更精确的正则表达式，避免匹配外部脚本
   const inlineScriptRegex = /<script(?![^>]*src=)([^>]*)>([\s\S]*?)<\/script>/gi;
-  
+
   // 提取内联脚本内容
-  htmlContent = htmlContent.replace(inlineScriptRegex, (match, attributes, scriptContent) => {
+  modifiedContent = htmlContent.replace(inlineScriptRegex, (match, attributes, scriptContent) => {
     // 跳过空脚本
     if (!scriptContent.trim()) {
       return match;
     }
-    
-    // 检查是否是关键的Next.js初始化脚本
-    const isNextJSScript = scriptContent.includes('self.__next_f') || 
-                          scriptContent.includes('__NEXT_DATA__') ||
-                          scriptContent.includes('__webpack_require__');
-    
-    if (isNextJSScript) {
-      scriptCounter++;
-      const scriptFileName = `inline-script-${scriptCounter}.js`;
-      
-      // 保存脚本内容到数组
-      inlineScripts.push({
-        fileName: scriptFileName,
-        content: scriptContent.trim(),
-        attributes: attributes
-      });
-      
-      // 替换为外部脚本引用（使用相对路径）
-       return `<script src="${scriptFileName}"${attributes}></script>`;
+
+    // 跳过已经外部引用的脚本（虽然不应该出现在这个正则中）
+    if (scriptContent.includes('src=') || scriptContent.includes('href=')) {
+      return match;
     }
-    
-    // 对于非关键脚本，直接移除
-    console.log('⚠️ 移除非关键内联脚本');
-    return '';
+
+    // 清理脚本内容
+    const cleanContent = sanitizeScriptContent(scriptContent);
+    if (!cleanContent) {
+      console.log('⚠️ 移除不安全的内联脚本');
+      return '';
+    }
+
+    scriptCounter++;
+    const scriptFileName = `${filename.replace('.html', '')}-script-${scriptCounter}.js`;
+
+    // 保存脚本内容到数组
+    scripts.push({
+      fileName: scriptFileName,
+      content: cleanContent,
+      attributes: attributes
+    });
+
+    // 替换为外部脚本引用（使用相对路径）
+    return `<script src="${scriptFileName}"${attributes}></script>`;
   });
-  
+
   // 将提取的脚本写入文件（直接放在build目录下）
-   if (inlineScripts.length > 0) {
-     const buildDir = CONFIG.BUILD_OUTPUT;
-     if (!fs.existsSync(buildDir)) {
-       fs.mkdirSync(buildDir, { recursive: true });
-     }
-     
-     inlineScripts.forEach(script => {
-       const scriptPath = path.join(buildDir, script.fileName);
-       
-       // 添加CSP兼容的脚本头部注释
-       // 直接写入脚本内容，使用IIFE包装
-        const scriptWithHeader = `/**
+  if (scripts.length > 0) {
+    const buildDir = CONFIG.BUILD_OUTPUT;
+    if (!fs.existsSync(buildDir)) {
+      fs.mkdirSync(buildDir, { recursive: true });
+    }
+
+    scripts.forEach(script => {
+      const scriptPath = path.join(buildDir, script.fileName);
+
+      // 添加CSP兼容的脚本头部注释
+      const scriptWithHeader = `/**
  * 外部化的内联脚本 - CSP兼容版本
  * 原始属性: ${script.attributes}
  * 生成时间: ${new Date().toISOString()}
  */
 
-// 使用IIFE包装脚本内容
-(function() {
-  try {
-    ${script.content}
-  } catch (error) {
-    console.error('内联脚本执行错误:', error);
+${script.content}`;
+
+      try {
+        fs.writeFileSync(scriptPath, scriptWithHeader, 'utf8');
+        console.log(`✅ 已外部化脚本: ${script.fileName} (长度: ${script.content.length})`);
+      } catch (error) {
+        console.warn(`⚠️ 脚本写入失败: ${script.fileName}`, error.message);
+      }
+    });
   }
-})();`;
-       
-       fs.writeFileSync(scriptPath, scriptWithHeader, 'utf8');
-       console.log(`✅ 已外部化脚本: ${script.fileName}`);
-     });
-   }
-  
-  console.log(`📤 共提取了 ${inlineScripts.length} 个内联脚本`);
-  return htmlContent;
+
+  // 验证处理结果
+  validateHtmlFile(modifiedContent, filename);
+
+  console.log(`📤 共提取了 ${scripts.length} 个内联脚本`);
+  return modifiedContent;
 }
 
 /**
