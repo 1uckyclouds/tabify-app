@@ -190,6 +190,16 @@ export class ImportExportService {
    * @returns 导入结果
    */
   public async importFromJSON(jsonString: string, options: ImportOptions): Promise<ImportResult> {
+    return await this.importFromString(jsonString, options);
+  }
+
+  /**
+   * 从字符串导入数据（支持OneTab格式）
+   * @param dataString 数据字符串
+   * @param options 导入选项
+   * @returns 导入结果
+   */
+  public async importFromString(dataString: string, options: ImportOptions): Promise<ImportResult> {
     const result: ImportResult = {
       success: false,
       tabsImported: 0,
@@ -200,8 +210,14 @@ export class ImportExportService {
     };
 
     try {
-      // 解析JSON数据
-      const importData = JSON.parse(jsonString);
+      // 首先尝试作为JSON解析
+      let importData: any;
+      try {
+        importData = JSON.parse(dataString);
+      } catch {
+        // 如果JSON解析失败，当作纯文本处理
+        importData = dataString;
+      }
       
       // 验证数据格式
       const validationResult = this.validateImportData(importData);
@@ -812,4 +828,18 @@ export const quickImportData = async (file: File): Promise<ImportResult> => {
     createBackup: true,
   };
   return await service.importFromFile(file, options);
+};
+
+/**
+ * 快速导入文本数据（支持OneTab格式）
+ */
+export const quickImportText = async (text: string): Promise<ImportResult> => {
+  const service = getImportExportService();
+  const options: ImportOptions = {
+    overwriteExisting: false,
+    importSettings: true,
+    duplicateStrategy: 'rename',
+    createBackup: true,
+  };
+  return await service.importFromString(text, options);
 };

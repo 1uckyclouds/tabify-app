@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { ArrowLeft, Upload, Download, FileText, AlertCircle, CheckCircle, X, Info } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, Upload, Download, FileText, AlertCircle, CheckCircle, X, Info, Copy, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
-import { quickExportAllData, quickImportData } from '../../lib/import-export';
+import { quickExportAllData, quickImportData, quickImportText } from '../../lib/import-export';
 import { ImportResult, ImportOptions } from '../../lib/types';
 
 /**
@@ -23,8 +23,16 @@ export default function ImportExportPage() {
     duplicateStrategy: 'rename',
     createBackup: true
   });
-  
+
+  // 文本导入相关状态
+  const [importMode, setImportMode] = useState<'file' | 'text'>('text');
+  const [textInput, setTextInput] = useState<string>('');
+  const [parsedData, setParsedData] = useState<Array<{url: string, title: string, isValid: boolean}>>([]);
+  const [showPreview, setShowPreview] = useState<boolean>(false);
+  const [formatType, setFormatType] = useState<'unknown' | 'onetab' | 'other'>('unknown');
+
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   // 导出数据
   const handleExport = async (includeSettings: boolean = true) => {
@@ -84,6 +92,142 @@ export default function ImportExportPage() {
   // 关闭导入结果
   const handleCloseResult = () => {
     setImportResult(null);
+  };
+
+  // 解析OneTab格式的文本
+  const parseOneTabText = (text: string): Array<{url: string, title: string, isValid: boolean}> => {
+    if (!text.trim()) return [];
+
+    const lines = text.split('\n').filter(line => line.trim());
+    const results: Array<{url: string, title: string, isValid: boolean}> = [];
+
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+
+      // 标准OneTab格式: URL | Title
+      const separatorMatch = trimmedLine.match(/^(https?:\/\/[^\s|]+)\s*\|\s*(.+)$/);
+      if (separatorMatch) {
+        const url = separatorMatch[1].trim();
+        const title = separatorMatch[2].trim();
+        results.push({ url, title, isValid: true });
+        return;
+      }
+
+      // 纯URL格式
+      const urlMatch = trimmedLine.match(/^(https?:\/\/[^\s]+)$/);
+      if (urlMatch) {
+        const url = urlMatch[1].trim();
+        try {
+          const urlObj = new URL(url);
+          const title = urlObj.hostname.replace(/^www\./, '');
+          results.push({ url, title, isValid: true });
+        } catch {
+          results.push({ url, title: url, isValid: true });
+        }
+        return;
+      }
+
+      // 包含URL的混合格式
+      const mixedUrlMatch = trimmedLine.match(/(https?:\/\/[^\s]+)/);
+      if (mixedUrlMatch) {
+        const url = mixedUrlMatch[1];
+        const title = trimmedLine.replace(url, '').replace(/^\s*\|\s*|\s*\|\s*$/g, '').trim() || new URL(url).hostname.replace(/^www\./, '');
+        results.push({ url, title, isValid: true });
+        return;
+      }
+
+      // 如果不是有效格式，添加到结果中但标记为无效
+      results.push({ url: '', title: trimmedLine, isValid: false });
+    });
+
+    return results;
+  };
+
+  // 检测文本格式类型
+  const detectTextFormat = (text: string): 'unknown' | 'onetab' | 'other' => {
+    if (!text.trim()) return 'unknown';
+
+    const hasUrlPattern = /https?:\/\/[^\s]+/i.test(text);
+    const hasSeparatorPattern = /\s*\|\s*/.test(text);
+    const hasMultipleLines = text.split('\n').filter(line => line.trim()).length > 1;
+    const validUrlCount = text.split('\n').filter(line => /https?:\/\/[^\s|]+/i.test(line)).length;
+
+    if (hasUrlPattern && validUrlCount > 0 && (hasSeparatorPattern || hasMultipleLines)) {
+      return 'onetab';
+    }
+
+    return 'other';
+  };
+
+  // 处理文本输入变化
+  const handleTextInputChange = (value: string) => {
+    setTextInput(value);
+
+    if (value.trim()) {
+      const parsed = parseOneTabText(value);
+      const format = detectTextFormat(value);
+      setParsedData(parsed);
+      setFormatType(format);
+      setShowPreview(true);
+    } else {
+      setParsedData([]);
+      setFormatType('unknown');
+      setShowPreview(false);
+    }
+  };
+
+  // 处理粘贴操作
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setTextInput(text);
+      handleTextInputChange(text);
+    } catch (error) {
+      console.error('粘贴失败:', error);
+    }
+  };
+
+  // 清空文本输入
+  const clearTextInput = () => {
+    setTextInput('');
+    setParsedData([]);
+    setFormatType('unknown');
+    setShowPreview(false);
+  };
+
+  // 从文本导入数据
+  const handleTextImport = async () => {
+    if (!textInput.trim()) {
+      setImportResult({
+        success: false,
+        tabsImported: 0,
+        groupsImported: 0,
+        duplicatesSkipped: 0,
+        errors: ['请输入要导入的数据'],
+        warnings: []
+      });
+      return;
+    }
+
+    setIsImporting(true);
+    setImportResult(null);
+
+    try {
+      const result = await quickImportText(textInput);
+      setImportResult(result);
+    } catch (error) {
+      console.error('导入失败:', error);
+      setImportResult({
+        success: false,
+        tabsImported: 0,
+        groupsImported: 0,
+        duplicatesSkipped: 0,
+        errors: ['导入过程中发生错误，请检查数据格式是否正确。'],
+        warnings: []
+      });
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   return (
@@ -295,31 +439,201 @@ export default function ImportExportPage() {
                 </div>
               </div>
 
-              {/* 文件选择 */}
+              {/* 导入方式选择 */}
               <div className="mb-6">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".json"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                
-                <button
-                  onClick={handleImportClick}
-                  disabled={isImporting}
-                  className="w-full p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <div className="text-center">
-                    <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                    <div className="text-lg font-medium text-gray-900 mb-2">
-                      {isImporting ? '正在导入...' : '选择文件导入'}
+                <div className="flex space-x-2 mb-4">
+                  <button
+                    onClick={() => setImportMode('text')}
+                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                      importMode === 'text'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Copy className="w-4 h-4" />
+                      文本粘贴
                     </div>
-                    <p className="text-gray-600">
-                      支持 .json 格式文件，点击选择或拖拽文件到此处
-                    </p>
+                  </button>
+                  <button
+                    onClick={() => setImportMode('file')}
+                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-colors ${
+                      importMode === 'file'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Upload className="w-4 h-4" />
+                      文件上传
+                    </div>
+                  </button>
+                </div>
+
+                {/* 文本粘贴区域 */}
+                {importMode === 'text' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-medium text-gray-700">
+                        粘贴OneTab导出的数据
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={handlePaste}
+                          className="flex items-center gap-1 px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
+                        >
+                          <Copy className="w-3 h-3" />
+                          粘贴
+                        </button>
+                        {textInput && (
+                          <button
+                            onClick={clearTextInput}
+                            className="flex items-center gap-1 px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                            清空
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <textarea
+                      ref={textAreaRef}
+                      value={textInput}
+                      onChange={(e) => handleTextInputChange(e.target.value)}
+                      placeholder="请粘贴从OneTab导出的文本内容，格式如下：
+https://example.com | 页面标题
+https://github.com/user/repo | GitHub项目页面"
+                      className="w-full h-48 p-4 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-y"
+                    />
+
+                    {/* 格式检测结果 */}
+                    {formatType !== 'unknown' && (
+                      <div className={`p-3 rounded-lg border ${
+                        formatType === 'onetab'
+                          ? 'bg-green-50 border-green-200'
+                          : 'bg-yellow-50 border-yellow-200'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            formatType === 'onetab' ? 'bg-green-500' : 'bg-yellow-500'
+                          }`} />
+                          <span className={`text-sm font-medium ${
+                            formatType === 'onetab' ? 'text-green-800' : 'text-yellow-800'
+                          }`}>
+                            {formatType === 'onetab' ? '检测到OneTab格式' : '检测到其他格式'}
+                          </span>
+                        </div>
+                        <p className={`text-sm mt-1 ${
+                          formatType === 'onetab' ? 'text-green-700' : 'text-yellow-700'
+                        }`}>
+                          {formatType === 'onetab'
+                            ? `发现 ${parsedData.filter(item => item.isValid).length} 个有效的URL`
+                            : '可以尝试导入，但可能需要调整格式'
+                          }
+                        </p>
+                      </div>
+                    )}
+
+                    {/* 预览区域 */}
+                    {showPreview && parsedData.length > 0 && (
+                      <div className="border-2 border-gray-200 rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-900">
+                            数据预览 ({parsedData.length} 条)
+                          </h4>
+                          <button
+                            onClick={() => setShowPreview(!showPreview)}
+                            className="p-1 text-gray-500 hover:text-gray-700"
+                          >
+                            {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+
+                        {showPreview && (
+                          <div className="max-h-48 overflow-y-auto">
+                            <div className="divide-y divide-gray-200">
+                              {parsedData.slice(0, 10).map((item, index) => (
+                                <div key={index} className={`p-3 ${
+                                  item.isValid ? 'bg-white' : 'bg-red-50'
+                                }`}>
+                                  <div className="flex items-start gap-3">
+                                    <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                                      item.isValid ? 'bg-green-500' : 'bg-red-500'
+                                    }`} />
+                                    <div className="flex-1 min-w-0">
+                                      <p className={`text-sm font-medium ${
+                                        item.isValid ? 'text-gray-900' : 'text-red-900'
+                                      }`}>
+                                        {item.title}
+                                      </p>
+                                      {item.isValid && (
+                                        <p className="text-xs text-gray-500 truncate mt-1">
+                                          {item.url}
+                                        </p>
+                                      )}
+                                      {!item.isValid && (
+                                        <p className="text-xs text-red-600 mt-1">
+                                          无效格式，请检查URL是否正确
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {parsedData.length > 10 && (
+                              <div className="p-3 bg-gray-50 text-center">
+                                <p className="text-sm text-gray-600">
+                                  还有 {parsedData.length - 10} 条数据未显示
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* 导入按钮 */}
+                    <button
+                      onClick={handleTextImport}
+                      disabled={isImporting || parsedData.length === 0}
+                      className="w-full py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                    >
+                      {isImporting ? '正在导入...' : '导入数据'}
+                    </button>
                   </div>
-                </button>
+                )}
+
+                {/* 文件上传区域 */}
+                {importMode === 'file' && (
+                  <div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json,.txt"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+
+                    <button
+                      onClick={handleImportClick}
+                      disabled={isImporting}
+                      className="w-full p-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="text-center">
+                        <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                        <div className="text-lg font-medium text-gray-900 mb-2">
+                          {isImporting ? '正在导入...' : '选择文件导入'}
+                        </div>
+                        <p className="text-gray-600">
+                          支持 .json 和 .txt 格式文件，点击选择或拖拽文件到此处
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* 导入结果 */}
