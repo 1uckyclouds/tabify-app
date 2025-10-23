@@ -173,7 +173,7 @@ export default function ImportExportPage() {
                   <button
                     onClick={() => handleExport(true)}
                     disabled={isExporting}
-                    className="p-4 border-2 border-blue-200 bg-blue-50 rounded-lg hover:border-blue-300 hover:bg-blue-100 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-left disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <FileText className="w-5 h-5 text-blue-600" />
@@ -414,23 +414,61 @@ export default function ImportExportPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">OneTab兼容性</h3>
                   <p className="text-gray-600">
-                    Tabify支持导入OneTab的数据，让您轻松迁移现有的标签页管理数据。
+                    Tabify完全支持导入OneTab的数据格式，让您轻松迁移现有的标签页管理数据。
                   </p>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <h4 className="text-md font-medium text-gray-900">如何从OneTab导入数据：</h4>
-                <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
-                  <li>在OneTab中点击"Export / import URLs"</li>
-                  <li>复制导出的文本内容</li>
-                  <li>将内容保存为.txt或.json文件</li>
-                  <li>在上方选择该文件进行导入</li>
-                </ol>
-                
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-3">支持的格式示例：</h4>
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-sm">
+                    <p className="text-gray-700 mb-2">
+                      https://mp.weixin.qq.com/s/PX-y5NYG7s_t4BONy4-Djg | 大模型巨头的Tick–Tock时代
+                    </p>
+                    <p className="text-gray-700 mb-2">
+                      https://github.com/sirmalloc/ccstatusline | sirmalloc/ccstatusline: 🚀 Beautiful statusline
+                    </p>
+                    <p className="text-gray-700">
+                      https://36kr.com/ | 36氪_让一部分人先看到未来
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-md font-medium text-gray-900 mb-3">导入步骤：</h4>
+                  <ol className="text-sm text-gray-600 space-y-2 list-decimal list-inside">
+                    <li>在OneTab中点击"Export / import URLs"按钮</li>
+                    <li>复制导出的文本内容</li>
+                    <li>将内容保存为 .txt 文件（或直接粘贴到文本编辑器中）</li>
+                    <li>在上方选择该文件进行导入</li>
+                  </ol>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <h5 className="text-sm font-medium text-green-900 mb-2">✅ 自动识别内容</h5>
+                    <ul className="text-xs text-green-700 space-y-1">
+                      <li>• URL 和标题自动分离</li>
+                      <li>• 支持中文和特殊字符</li>
+                      <li>• 自动生成网站图标</li>
+                      <li>• 智能创建分组</li>
+                    </ul>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <h5 className="text-sm font-medium text-blue-900 mb-2">🔧 高级功能</h5>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      <li>• 支持多种分隔符格式</li>
+                      <li>• 处理纯URL列表</li>
+                      <li>• 保留原始标题信息</li>
+                      <li>• 提供详细导入反馈</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                   <p className="text-sm text-yellow-800">
-                    <strong>注意：</strong>OneTab导入的数据将自动转换为Tabify格式，部分高级功能（如分组信息）可能无法完全保留。
+                    <strong>💡 提示：</strong>Tabify会自动识别OneTab数据格式并正确处理。如果数据中有分组标题，Tabify会保留分组结构。
                   </p>
                 </div>
               </div>

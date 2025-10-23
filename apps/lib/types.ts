@@ -463,8 +463,8 @@ export const APP_VERSION = '1.8.0';
  * 存储键名常量
  */
 export const STORAGE_KEYS = {
-  TABS: 'tabify_tabs',
-  GROUPS: 'tabify_groups',
+  TABS: 'tabs',
+  GROUPS: 'groups',
   SETTINGS: 'tabify_settings',
   OPERATIONS: 'tabify_operations',
   VERSION: 'tabify_version',

@@ -391,13 +391,13 @@ export class ImportExportService {
   private validateImportData(data: any): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    if (!data || typeof data !== 'object') {
-      errors.push('数据格式无效：不是有效的JSON对象');
+    if (!data) {
+      errors.push('数据为空');
       return { isValid: false, errors };
     }
 
     // 检查Tabify格式
-    if (data.app && data.tabs && Array.isArray(data.tabs)) {
+    if (typeof data === 'object' && data.app && data.tabs && Array.isArray(data.tabs)) {
       // 验证标签页数据
       for (let i = 0; i < data.tabs.length; i++) {
         const tab = data.tabs[i];
@@ -416,10 +416,31 @@ export class ImportExportService {
         }
       }
     }
-    // 检查OneTab格式或其他格式
+    // 检查OneTab格式或其他字符串格式
     else if (typeof data === 'string') {
-      // OneTab格式通常是纯文本
-      return { isValid: true, errors: [] };
+      // 检查是否包含有效的URL
+      const trimmedData = data.trim();
+      if (!trimmedData) {
+        errors.push('文本数据为空');
+        return { isValid: false, errors };
+      }
+
+      const lines = trimmedData.split('\n').filter(line => line.trim());
+      let validUrlCount = 0;
+
+      for (const line of lines) {
+        const urlMatch = line.match(/https?:\/\/[^\s|]+/i);
+        if (urlMatch) {
+          validUrlCount++;
+        }
+      }
+
+      if (validUrlCount === 0) {
+        errors.push('未找到有效的URL，请检查数据格式是否正确');
+        return { isValid: false, errors };
+      }
+
+      console.log(`ImportExportService: 验证通过，发现 ${validUrlCount} 个有效URL`);
     } else {
       errors.push('不支持的数据格式');
     }
@@ -433,34 +454,119 @@ export class ImportExportService {
    * @returns 数据格式类型
    */
   private detectDataFormat(data: any): 'tabify' | 'onetab' | 'unknown' {
+    // 检查Tabify格式
     if (data.app && data.app.name === 'Tabify') {
       return 'tabify';
     }
-    
-    if (typeof data === 'string' || (data.app && data.app.name === 'OneTab')) {
+
+    // 检查OneTab格式或类似文本格式
+    if (typeof data === 'string') {
+      // 检查是否包含URL和标题的特征
+      const hasUrlPattern = /https?:\/\/[^\s]+/i.test(data);
+      const hasSeparatorPattern = /\s*\|\s*/.test(data);
+      const hasMultipleLines = data.split('\n').filter(line => line.trim()).length > 1;
+
+      if (hasUrlPattern && (hasSeparatorPattern || hasMultipleLines)) {
+        return 'onetab';
+      }
+    }
+
+    // 检查是否是JSON格式的OneTab数据
+    if (data.app && data.app.name === 'OneTab') {
       return 'onetab';
     }
-    
+
+    // 检查是否是数组格式，可能是一般的链接列表
+    if (Array.isArray(data) && data.length > 0) {
+      const firstItem = data[0];
+      if (typeof firstItem === 'object' && (firstItem.url || firstItem.title)) {
+        // 如果有url和title字段，可能是通用的书签格式
+        return 'tabify'; // 当作Tabify格式处理
+      }
+    }
+
     return 'unknown';
   }
 
   /**
    * 转换OneTab数据格式
-   * @param _oneTabData OneTab格式数据（暂未实现）
+   * @param oneTabData OneTab格式数据
    * @returns Tabify格式数据
    */
-  private convertOneTabData(_oneTabData: any): ExportData {
-    // 这里实现OneTab到Tabify格式的转换逻辑
-    // 具体实现取决于OneTab的实际数据格式
-    
+  private convertOneTabData(oneTabData: any): ExportData {
+    const tabs: Tab[] = [];
+    const groups: Group[] = [];
+
+    // 如果是字符串格式，按行解析
+    if (typeof oneTabData === 'string') {
+      const lines = oneTabData.split('\n').filter(line => line.trim());
+      let currentGroup: Group | null = null;
+      let tabCount = 0;
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+
+        // 检查是否是分组标题
+        if (this.isOneTabGroupTitle(trimmedLine)) {
+          const groupName = this.extractOneTabGroupName(trimmedLine);
+          currentGroup = {
+            id: `onetab_group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            name: groupName,
+            createdTime: Date.now(),
+            isLocked: false,
+            isExpanded: true,
+            sortOrder: groups.length,
+          };
+          groups.push(currentGroup);
+          tabCount = 0; // 重置当前分组的标签页计数
+        } else {
+          // 尝试解析标签页数据
+          const tabData = this.parseOneTabLine(trimmedLine);
+          if (tabData) {
+            const tab: Tab = {
+              id: `onetab_tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              title: tabData.title,
+              url: tabData.url,
+              favicon: this.getFaviconUrl(tabData.url),
+              groupId: currentGroup?.id,
+              createdTime: Date.now(),
+              collectedAt: Date.now(),
+            };
+            tabs.push(tab);
+            tabCount++;
+          }
+        }
+      }
+
+      // 如果没有创建任何分组，创建一个默认分组
+      if (groups.length === 0 && tabs.length > 0) {
+        const defaultGroup: Group = {
+          id: `onetab_default_group_${Date.now()}`,
+          name: 'OneTab导入',
+          createdTime: Date.now(),
+          isLocked: false,
+          isExpanded: true,
+          sortOrder: 0,
+        };
+        groups.push(defaultGroup);
+
+        // 将所有标签页分配给默认分组
+        tabs.forEach(tab => {
+          tab.groupId = defaultGroup.id;
+        });
+      }
+    }
+
+    console.log(`ImportExportService: OneTab数据转换完成 - 标签页: ${tabs.length}, 分组: ${groups.length}`);
+
     return {
       app: {
         name: 'Tabify',
         version: APP_VERSION,
         exportTime: Date.now(),
       },
-      tabs: [],
-      groups: [],
+      tabs,
+      groups,
     };
   }
 
@@ -606,25 +712,56 @@ export class ImportExportService {
    * @returns 标签页数据
    */
   private parseOneTabLine(line: string): { title: string; url: string } | null {
-    // OneTab格式通常是: URL | Title
-    const parts = line.split(' | ');
-    if (parts.length >= 2) {
-      return {
-        url: parts[0].trim(),
-        title: parts[1].trim(),
-      };
+    const trimmedLine = line.trim();
+
+    // 1. 标准OneTab格式: URL | Title
+    const separatorMatch = trimmedLine.match(/^(https?:\/\/[^\s|]+)\s*\|\s*(.+)$/);
+    if (separatorMatch) {
+      const url = separatorMatch[1].trim();
+      const title = separatorMatch[2].trim();
+      return { url, title };
     }
-    
-    // 尝试其他格式
-    if (line.includes('http')) {
-      const urlMatch = line.match(/(https?:\/\/[^\s]+)/);
-      if (urlMatch) {
-        const url = urlMatch[1];
-        const title = line.replace(url, '').trim() || new URL(url).hostname;
+
+    // 2. 反向格式: Title | URL (虽然少见但支持)
+    const reverseMatch = trimmedLine.match(/^(.+?)\s*\|\s*(https?:\/\/[^\s]+)$/);
+    if (reverseMatch) {
+      const title = reverseMatch[1].trim();
+      const url = reverseMatch[2].trim();
+      return { url, title };
+    }
+
+    // 3. 纯URL格式，自动生成标题
+    const urlMatch = trimmedLine.match(/^(https?:\/\/[^\s]+)$/);
+    if (urlMatch) {
+      const url = urlMatch[1].trim();
+      try {
+        const urlObj = new URL(url);
+        // 使用域名作为标题
+        const title = urlObj.hostname.replace(/^www\./, '');
         return { url, title };
+      } catch {
+        // 如果URL解析失败，使用URL本身作为标题
+        return { url, title: url };
       }
     }
-    
+
+    // 4. 检查是否包含URL的混合格式
+    const mixedUrlMatch = trimmedLine.match(/(https?:\/\/[^\s]+)/);
+    if (mixedUrlMatch) {
+      const url = mixedUrlMatch[1];
+      // 从原行中移除URL，剩余部分作为标题
+      const title = trimmedLine.replace(url, '').replace(/^\s*\|\s*|\s*\|\s*$/g, '').trim();
+      const finalTitle = title || new URL(url).hostname.replace(/^www\./, '');
+      return { url, title: finalTitle };
+    }
+
+    // 5. 检查是否是普通文本（可能只是标题，需要URL）
+    if (trimmedLine.length > 0 && !trimmedLine.includes('http')) {
+      // 对于纯文本，暂时跳过，但记录警告
+      console.warn(`ImportExportService: 跳过无效行（缺少URL）: ${trimmedLine}`);
+      return null;
+    }
+
     return null;
   }
 
@@ -655,6 +792,11 @@ export const getImportExportService = () => ImportExportService.getInstance();
  */
 export const quickExportAllData = async (includeSettings: boolean = true): Promise<void> => {
   const service = getImportExportService();
+
+  // 确保存储服务已初始化
+  const storageService = getStorageService();
+  await storageService.initialize();
+
   await service.exportToFile(includeSettings);
 };
 
