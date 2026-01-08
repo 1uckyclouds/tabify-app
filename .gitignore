@@ -149,3 +149,8 @@ test-iframe-*.html
 !README.md
 !CHROME_EXTENSION_SETUP.md
 !requirements.md
+# Playwright MCP backup files
+.playwright-mcp/
+
+# Windows null device file (accidentally created)
+nul

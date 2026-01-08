@@ -789,10 +789,62 @@ export class ImportExportService {
   private getFaviconUrl(url: string): string {
     try {
       const urlObj = new URL(url);
-      return `${urlObj.protocol}//${urlObj.hostname}/favicon.ico`;
+      const hostname = urlObj.hostname;
+      const protocol = urlObj.protocol;
+
+      return this.generateFaviconWithFallback(protocol, hostname);
     } catch {
       return '';
     }
+  }
+
+  /**
+   * 使用渐进式fallback策略生成favicon URL
+   * @param protocol 协议
+   * @param hostname 主机名
+   * @returns favicon URL
+   */
+  private generateFaviconWithFallback(protocol: string, hostname: string): string {
+    // 常见的favicon路径（按优先级排序）
+    const faviconPaths = [
+      '/favicon.ico',
+      '/favicon.png',
+      '/favicon.svg',
+      '/static/favicon.ico',
+      '/assets/favicon.ico',
+      '/img/favicon.ico',
+      '/images/favicon.ico',
+      '/static/img/favicon.ico',
+      '/assets/images/favicon.ico'
+    ];
+
+    // 子域名回退策略
+    const rootDomain = this.extractRootDomain(hostname);
+    const domainVariants = hostname !== rootDomain ? [hostname, rootDomain] : [hostname];
+
+    // 按优先级生成favicon URL
+    // 返回第一个可能的URL（浏览器会自动处理404等情况）
+    for (const domain of domainVariants) {
+      for (const path of faviconPaths) {
+        return `${protocol}//${domain}${path}`;
+      }
+    }
+
+    // 最后的fallback
+    return `${protocol}//${hostname}/favicon.ico`;
+  }
+
+  /**
+   * 提取根域名
+   * @param hostname 完整主机名
+   * @returns 根域名
+   */
+  private extractRootDomain(hostname: string): string {
+    const parts = hostname.split('.');
+    if (parts.length >= 2) {
+      return parts.slice(-2).join('.');
+    }
+    return hostname;
   }
 }
 
