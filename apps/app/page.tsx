@@ -205,8 +205,13 @@ export default function Home() {
         }
         
         console.log('🔧 清除加载状态，应用即将显示');
-        setIsLoading(false);
-        console.log('🎉 应用初始化完成，页面即将显示');
+        // 延迟调用 setIsLoading(false)，给 React 更多时间完成 hydration
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setIsLoading(false);
+            console.log('🎉 应用初始化完成，页面即将显示');
+          });
+        });
         
         // 验证React应用状态
         setTimeout(() => {
@@ -1440,6 +1445,7 @@ export default function Home() {
       >
       <div className="min-h-screen bg-white" suppressHydrationWarning>
       {/* 加载状态显示 */}
+      <ClientOnly>
       {isLoading && (
         <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
           <div className="text-center">
@@ -1472,8 +1478,10 @@ export default function Home() {
           </div>
         </div>
       )}
+      </ClientOnly>
       
       {/* 错误状态显示 */}
+      <ClientOnly>
       {error && (
         <div className="fixed inset-0 bg-white bg-opacity-90 flex items-center justify-center z-50">
           <div className="text-center max-w-md mx-auto p-6">
@@ -1495,6 +1503,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      </ClientOnly>
       
       <TopToolbar
         onImport={handleImport}

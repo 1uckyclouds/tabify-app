@@ -62,7 +62,8 @@ export default function ImportExportPage() {
     setImportResult(null);
 
     try {
-      const result = await quickImportData(file);
+      // 传递用户实际选择的导入选项
+      const result = await quickImportData(file, importOptions);
       setImportResult(result);
     } catch (error) {
       console.error('导入失败:', error);
@@ -213,7 +214,8 @@ export default function ImportExportPage() {
     setImportResult(null);
 
     try {
-      const result = await quickImportText(textInput);
+      // 传递用户实际选择的导入选项
+      const result = await quickImportText(textInput, importOptions);
       setImportResult(result);
     } catch (error) {
       console.error('导入失败:', error);

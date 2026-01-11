@@ -14,6 +14,14 @@
 
 import { Tab, ChromeTabInfo } from './types';
 
+// 条件日志：仅在开发环境输出
+const isDev = process.env.NODE_ENV === "development";
+const debugWarn = isDev ? console.warn : () => {};
+
+// 默认标签页图标：当Chrome未提供favIconUrl时使用，避免主动请求/favicon.ico导致404错误
+const DEFAULT_FAVICON = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><text y="20" font-size="20">🌐</text></svg>';
+
+
 // ==================== Chrome API服务类 ====================
 
 /**
@@ -400,7 +408,7 @@ export class ChromeAPIService {
       const urlObj = new URL(url);
       return `${urlObj.protocol}//${urlObj.hostname}/favicon.ico`;
     } catch (error) {
-      console.warn('ChromeAPIService: 无效URL，无法获取favicon', url);
+      debugWarn('ChromeAPIService: 无效URL，无法获取favicon', url);
       return '';
     }
   }
@@ -415,7 +423,7 @@ export class ChromeAPIService {
       id: `chrome_${chromeTab.chromeId}`,
       title: chromeTab.title,
       url: chromeTab.url,
-      favicon: chromeTab.favIconUrl || this.getFaviconUrl(chromeTab.url),
+      favicon: chromeTab.favIconUrl || DEFAULT_FAVICON,
       createdTime: Date.now(),
       lastAccessTime: chromeTab.active ? Date.now() : undefined,
       isActive: chromeTab.active,

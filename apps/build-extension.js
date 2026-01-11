@@ -428,6 +428,8 @@ function generateHTMLTemplate() {
   </div>
   
   <!-- Chrome扩展桥梁脚本 -->
+  <!-- Remixicon图标字体 -->
+  <link rel="stylesheet" href="assets/fonts/remixicon.min.css">
   <script src="chrome-extension-bridge.js"></script>
   <script src="manager-init.js"></script>
 </body>
@@ -489,6 +491,10 @@ function processHTMLForExtension(htmlContent, filename = 'unknown') {
   // 在</head>前添加Chrome扩展桥梁脚本引用
   const extensionScriptRef = `
   <!-- Chrome扩展桥梁脚本 -->
+  <!-- Remixicon图标字体 -->
+  <link rel="stylesheet" href="assets/fonts/remixicon.min.css">
+  <!-- Favicon - 使用扩展图标阻止404请求 -->
+  <link rel="icon" href="icons/icon16.png">
   <script src="chrome-extension-bridge.js"></script>
 `;
   
@@ -681,6 +687,9 @@ async function processCSSFiles() {
     
     // 修复CSS中的路径引用
     content = content.replace(/url\(\//g, 'url(../..');
+    
+    // 修复字体文件路径：将 _next/static/media 替换为 nextstatic/static/media
+    content = content.split('../.._next/static/media/').join('nextstatic/static/media/');
     
     fs.writeFileSync(filePath, content, 'utf8');
   }

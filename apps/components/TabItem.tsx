@@ -4,6 +4,51 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import DragInsertIndicator from './DragInsertIndicator';
 
+// 条件日志：仅在开发环境输出
+const isDev = process.env.NODE_ENV === 'development';
+const debugLog = isDev ? console.log : () => {};
+
+// Chrome API 类型声明
+interface ChromeRuntime {
+  id?: string;
+}
+
+interface ChromeAPI {
+  runtime?: ChromeRuntime;
+}
+
+declare const chrome: ChromeAPI | undefined;
+
+/**
+ * 构建 Chrome 内部 Favicon API URL
+ * 使用 chrome-extension://ID/_favicon/?pageUrl=URL&size=16
+ * 避免 CSP 限制外部 favicon 图片加载
+ */
+function buildChromeFaviconUrl(tabUrl: string): string | null {
+  if (!tabUrl) {
+    return null;
+  }
+
+  // 检测 Chrome 扩展环境并获取扩展 ID
+  let extensionId: string | undefined;
+  if (typeof chrome !== 'undefined' && chrome.runtime) {
+    extensionId = chrome.runtime.id;
+  }
+
+  if (!extensionId) {
+    return null;
+  }
+
+  try {
+    // 构建内部 API URL
+    const encodedUrl = encodeURIComponent(tabUrl);
+    return `chrome-extension://${extensionId}/_favicon/?pageUrl=${encodedUrl}&size=16`;
+  } catch (error) {
+    console.warn('构建 Chrome favicon URL 失败:', error);
+    return null;
+  }
+}
+
 interface TabItemProps {
   id: string;
   title: string;
@@ -138,7 +183,7 @@ export default function TabItem({
 
   // 鼠标进入菜单整体区域
   const handleMenuAreaEnter = useCallback(() => {
-    console.log('🔍 鼠标进入菜单区域:', id);
+    debugLog('🔍 鼠标进入菜单区域:', id);
     // 清除可能存在的关闭定时器
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
@@ -148,10 +193,10 @@ export default function TabItem({
 
   // 鼠标离开菜单整体区域
   const handleMenuAreaLeave = useCallback(() => {
-    console.log('🔍 鼠标离开菜单区域:', id);
+    debugLog('🔍 鼠标离开菜单区域:', id);
     // 设置延迟关闭定时器
     closeTimeoutRef.current = setTimeout(() => {
-      console.log('🔍 自动关闭菜单:', id);
+      debugLog('🔍 自动关闭菜单:', id);
       setShowDropdown(false);
       // 当菜单关闭时，如果鼠标不在标签页主体上，也重置悬停状态
       if (onHover) {
@@ -220,10 +265,20 @@ export default function TabItem({
         >
           <div className="w-4 h-4 flex items-center justify-center flex-shrink-0 rounded-md">
             {favicon ? (
-              <img 
-                src={favicon} 
-                alt="" 
-                className="w-4 h-4 object-contain rounded-sm" 
+              <img
+                src={favicon}
+                alt=""
+                className="w-4 h-4 object-contain rounded-sm"
+                onError={(e) => {
+                  // 如果外部 favicon 加载失败，回退到 Chrome 内部 API
+                  const chromeFavicon = buildChromeFaviconUrl(url);
+                  if (chromeFavicon) {
+                    (e.target as HTMLImageElement).src = chromeFavicon;
+                  } else {
+                    // 如果都不是，显示默认图标（隐藏图片）
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }
+                }}
               />
             ) : (
               <i className="ri-global-line text-gray-500 text-base"></i>
@@ -272,9 +327,9 @@ export default function TabItem({
             onMouseEnter={handleMenuAreaEnter}
             onMouseLeave={handleMenuAreaLeave}
           >
-            <button 
+            <button
               onClick={() => {
-                console.log('🔍 点击更多按钮:', id, '当前状态:', showDropdown);
+                debugLog('🔍 点击更多按钮:', id, '当前状态:', showDropdown);
                 setShowDropdown(!showDropdown);
               }}
               className="w-7 h-7 flex items-center justify-center hover:bg-gray-100 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-sm"
@@ -284,10 +339,10 @@ export default function TabItem({
 
             {showDropdown && (
               <>
-                <div 
-                  className="fixed inset-0 z-10" 
+                <div
+                  className="fixed inset-0 z-10"
                   onClick={() => {
-                    console.log('🔍 点击空白处关闭菜单:', id);
+                    debugLog('🔍 点击空白处关闭菜单:', id);
                     setShowDropdown(false);
                   }}
                 ></div>

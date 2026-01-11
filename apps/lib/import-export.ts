@@ -20,6 +20,9 @@ import {
 } from './types';
 import { getStorageService } from './storage';
 
+// 默认标签页图标：导入时使用，避免主动请求/favicon.ico导致404错误
+const DEFAULT_FAVICON = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><text y="20" font-size="20">🌐</text></svg>';
+
 // ==================== 导入导出服务类 ====================
 
 /**
@@ -306,7 +309,7 @@ export class ImportExportService {
               id: `onetab_tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
               title: tabData.title,
               url: tabData.url,
-              favicon: this.getFaviconUrl(tabData.url),
+              favicon: DEFAULT_FAVICON, // 使用默认图标，避免404错误
               groupId: currentGroup?.id,
               createdTime: Date.now(),
             };
@@ -543,7 +546,7 @@ export class ImportExportService {
               id: `onetab_tab_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
               title: tabData.title,
               url: tabData.url,
-              favicon: this.getFaviconUrl(tabData.url),
+              favicon: DEFAULT_FAVICON, // 使用默认图标，避免404错误
               groupId: currentGroup?.id,
               createdTime: Date.now(),
               collectedAt: Date.now(),
@@ -870,28 +873,40 @@ export const quickExportAllData = async (includeSettings: boolean = true): Promi
 
 /**
  * 快速导入数据
+ * @param file 要导入的文件
+ * @param options 导入选项（可选，默认使用推荐配置）
  */
-export const quickImportData = async (file: File): Promise<ImportResult> => {
+export const quickImportData = async (
+  file: File,
+  options?: Partial<ImportOptions>
+): Promise<ImportResult> => {
   const service = getImportExportService();
-  const options: ImportOptions = {
+  const defaultOptions: ImportOptions = {
     overwriteExisting: false,
     importSettings: true,
     duplicateStrategy: 'rename',
     createBackup: true,
   };
-  return await service.importFromFile(file, options);
+  const finalOptions = { ...defaultOptions, ...options };
+  return await service.importFromFile(file, finalOptions);
 };
 
 /**
  * 快速导入文本数据（支持OneTab格式）
+ * @param text 要导入的文本数据
+ * @param options 导入选项（可选，默认使用推荐配置）
  */
-export const quickImportText = async (text: string): Promise<ImportResult> => {
+export const quickImportText = async (
+  text: string,
+  options?: Partial<ImportOptions>
+): Promise<ImportResult> => {
   const service = getImportExportService();
-  const options: ImportOptions = {
+  const defaultOptions: ImportOptions = {
     overwriteExisting: false,
     importSettings: true,
     duplicateStrategy: 'rename',
     createBackup: true,
   };
-  return await service.importFromString(text, options);
+  const finalOptions = { ...defaultOptions, ...options };
+  return await service.importFromString(text, finalOptions);
 };

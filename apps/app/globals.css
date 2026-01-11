@@ -1,4 +1,4 @@
-@import url('/remixicon.min.css');
+/* @import url('/remixicon.min.css'); - 已移除，改用构建脚本注入 <link> 标签 */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
