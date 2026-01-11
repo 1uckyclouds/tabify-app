@@ -152,5 +152,8 @@ test-iframe-*.html
 # Playwright MCP backup files
 .playwright-mcp/
 
+# Spec workflow files
+.spec-workflow/
+
 # Windows null device file (accidentally created)
 nul
